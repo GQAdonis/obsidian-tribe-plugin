@@ -9,7 +9,6 @@
   import { Copy, FileText, User, Bot, Download } from 'lucide-svelte';
   import { toast } from '../../components/ui/toast/toast';
   import InputModal from '../ui/InputModal.svelte';
-  import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
   /** @type {string} */
   export let content: string;
@@ -26,7 +25,6 @@
   let showInputModal = false;
   let currentContent = '';
   let isCodeBlock = false;
-  let isMermaidDiagram = false;
 
   onMount(() => {
     mermaid.initialize({ startOnLoad: true });
@@ -52,30 +50,30 @@
 
     // Render mermaid diagrams
     setTimeout(() => {
-      const mermaidDiagrams = document.querySelectorAll('.mermaid');
-      mermaid.init(undefined, mermaidDiagrams as NodeListOf<HTMLElement>);
-      isMermaidDiagram = mermaidDiagrams.length > 0;
+      mermaid.init(undefined, document.querySelectorAll('.mermaid'));
     }, 0);
 
-    // Add buttons to code blocks and mermaid diagrams
+    // Add copy and create note buttons to code blocks and mermaid diagrams
     setTimeout(() => {
-      const codeBlocks = document.querySelectorAll('pre code');
+      const codeBlocks = document.querySelectorAll('pre code, .mermaid');
       codeBlocks.forEach((block, index) => {
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'code-block-buttons';
+        if (!block.parentNode?.querySelector('.code-block-buttons')) {
+          const buttonContainer = document.createElement('div');
+          buttonContainer.className = 'code-block-buttons';
 
-        const copyButton = createButton('Copy', 'copy', () => copyCodeBlock(block.textContent || '', index));
-        buttonContainer.appendChild(copyButton);
+          const copyButton = createButton('Copy', 'copy', () => copyCodeBlock(block.textContent || '', index));
+          buttonContainer.appendChild(copyButton);
 
-        if (isMermaidDiagram) {
-          const saveAsPngButton = createButton('Save as PNG', 'download', () => saveMermaidAsPng(block));
-          buttonContainer.appendChild(saveAsPngButton);
-        } else {
-          const createNoteButton = createButton('Create Note', 'file-text', () => openCreateNoteModal(block.textContent || '', true));
-          buttonContainer.appendChild(createNoteButton);
+          if (block.classList.contains('mermaid')) {
+            const saveAsPngButton = createButton('Save as PNG', 'download', () => saveMermaidAsPng(block));
+            buttonContainer.appendChild(saveAsPngButton);
+          } else {
+            const createNoteButton = createButton('Create Note', 'file-text', () => openCreateNoteModal(block.textContent || '', true));
+            buttonContainer.appendChild(createNoteButton);
+          }
+
+          block.parentNode?.insertBefore(buttonContainer, block);
         }
-
-        block.parentNode?.insertBefore(buttonContainer, block);
       });
     }, 0);
   }
@@ -199,26 +197,12 @@
     </div>
     {#if !isStreaming}
       <div class="actions">
-        <Tooltip>
-          <TooltipTrigger>
-            <Button on:click={handleCopyFullContent} size="sm" variant="outline">
-              <Copy class="h-3 w-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Copy full content</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger>
-            <Button on:click={() => openCreateNoteModal(content)} size="sm" variant="outline">
-              <FileText class="h-3 w-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Create new note</p>
-          </TooltipContent>
-        </Tooltip>
+        <Button on:click={handleCopyFullContent} size="sm" variant="ghost" class="icon-button" title="Copy full content">
+          <Copy class="h-4 w-4" />
+        </Button>
+        <Button on:click={() => openCreateNoteModal(content)} size="sm" variant="ghost" class="icon-button" title="Create new note">
+          <FileText class="h-4 w-4" />
+        </Button>
       </div>
     {/if}
   </div>
@@ -236,19 +220,19 @@
   .bubble-container {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
   }
 
   .user-container {
-    flex-direction: row-reverse;
-  }
-
-  .assistant-container {
     flex-direction: row;
   }
 
+  .assistant-container {
+    flex-direction: row-reverse;
+  }
+
   .avatar {
-    margin: 0 10px;
+    margin: 0 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -259,19 +243,19 @@
   }
 
   .bubble {
-    padding: 10px;
-    border-radius: 12px;
-    max-width: calc(70% - 52px);
-    transition: all 0.3s ease;
+    padding: 12px;
+    border-radius: 5px;
+    max-width: calc(100% - 56px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   .user-bubble {
-    background-color: #e9f5ff;
+    background-color: #e6ffe6;
     color: #333;
   }
 
   .assistant-bubble {
-    background-color: #f1f1f1;
+    background-color: #e6f3ff;
     color: #333;
   }
 
@@ -290,16 +274,19 @@
 
   .content :global(pre) {
     position: relative;
-    padding: 10px;
+    padding: 16px;
     border-radius: 5px;
     overflow: hidden;
+    margin: 8px 0;
   }
 
   .content :global(pre code) {
     display: block;
     overflow-x: auto;
-    padding: 1em;
+    padding: 0;
     font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   /* Light mode styles */
@@ -310,25 +297,26 @@
 
   /* Dark mode styles */
   :global(.theme-dark) .content :global(pre) {
-    background-color: #ffffff;
+    background-color: #f0f0f0;
     color: #000000;
   }
 
   .content :global(.code-block-buttons) {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 4px;
+    right: 4px;
     display: flex;
-    gap: 5px;
+    gap: 4px;
   }
 
   .content :global(.shadcn-button) {
     background-color: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 4px;
-    padding: 2px;
+    padding: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
+    color: inherit;
   }
 
   .content :global(.shadcn-button:hover) {
@@ -343,16 +331,21 @@
   .actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 5px;
-    gap: 2px;
+    margin-top: 8px;
+    gap: 4px;
   }
 
-  .actions :global(button) {
-    padding: 2px;
-    font-size: 0.75rem;
+  .actions :global(.icon-button) {
+    padding: 4px;
+    background: none;
+    border: none;
+    color: #666;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .actions :global(.icon-button:hover) {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
   }
 </style>
-
-<svelte:head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
-</svelte:head>

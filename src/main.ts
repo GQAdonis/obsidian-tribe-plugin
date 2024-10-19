@@ -1,4 +1,5 @@
-import { Plugin, App, PluginSettingTab, Setting } from 'obsidian';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Plugin, App, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
 import type { TribePluginSettings } from './features/settings/settings';
 import { DEFAULT_SETTINGS, saveSettings, checkMissingSettings } from './features/settings/settings';
 import { IPFSSync } from './features/ipfs/ipfs-sync';
@@ -6,10 +7,12 @@ import { VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL } from './constants';
 import { GenerativeAISidePanelView } from './features/chat/views/generative-ai-side-panel';
 import { toast } from './components/ui/toast/toast';
 import { isValidUrl } from './utils/validation';
+import { Wand2 } from 'lucide-svelte';
 
 export default class TribePlugin extends Plugin {
   settings!: TribePluginSettings;
   private ipfsSync!: IPFSSync;
+  private ribbonIconEl: HTMLElement | null = null;
 
   async onload() {
     console.log('Tribe Plugin loaded');
@@ -23,10 +26,11 @@ export default class TribePlugin extends Plugin {
     );
     console.log('Tribe Plugin registerView');
 
-    this.addRibbonIcon('ai', 'Tribe AI Plugin', (evt: MouseEvent) => {
+    this.addRibbonIcon('wand-2', 'Tribe AI Plugin', (evt: MouseEvent) => {
       this.activateView();
     });
     console.log('Tribe Plugin addRibbonIcon');
+
     this.addCommand({
       id: 'open-tribe-ai-plugin',
       name: 'Open Tribe AI Plugin',
@@ -71,16 +75,47 @@ export default class TribePlugin extends Plugin {
       return;
     }
 
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL);
-
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (leaf) {
+    const existingLeaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL);
+    if (existingLeaves.length > 0) {
+      // If a view already exists, just reveal it
+      this.app.workspace.revealLeaf(existingLeaves[0]);
+    } else {
+      // Create a new leaf in the main workspace area
+      const leaf = this.app.workspace.getLeaf('tab');
       leaf.setViewState({
         type: VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL,
         active: true,
       });
 
-      this.app.workspace.revealLeaf(leaf);
+      // Ensure the new leaf is revealed and focused
+      this.app.workspace.setActiveLeaf(leaf, { focus: true });
+    }
+
+    // Ensure the view is visible
+    this.ensureViewIsVisible();
+  }
+
+  ensureViewIsVisible() {
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL);
+    if (leaves.length > 0) {
+      const leaf = leaves[0];
+      if (!leaf.view.containerEl.isConnected) {
+        console.log('View is not visible, attempting to make it visible');
+        this.app.workspace.revealLeaf(leaf);
+      }
+
+      // Double-check visibility after a short delay
+      setTimeout(() => {
+        if (!leaf.view.containerEl.isConnected) {
+          console.log('View still not visible, notifying user');
+          toast({
+            title: "View Not Visible",
+            description: "The AI chat view could not be made visible. Please try reopening it.",
+            duration: 5000,
+            variant: "destructive",
+          });
+        }
+      }, 500);
     }
   }
 }

@@ -12,7 +12,7 @@ cp "$SRC_DIR/main.js" "$DEST_DIR/main.js"
 cp "$SRC_DIR/main.js.map" "$DEST_DIR/main.js.map"
 
 # Copy styles.css to the plugin directory
-# cp "$SRC_DIR/styles.css" "$DEST_DIR/styles.css"
+cp "$SRC_DIR/styles.css" "$DEST_DIR/styles.css"
 
 # Copy manifest.json to the plugin directory
 cp manifest.json "$DEST_DIR"

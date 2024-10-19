@@ -95,6 +95,7 @@
 <Toaster />
 
 <style>
+    /* svelte-ignore css-unused-selector */
     .chat-view {
         display: flex;
         flex-direction: column;
@@ -109,6 +110,7 @@
         padding: 10px 20px;
     }
 
+    /* svelte-ignore css-unused-selector */
     .config-button {
         background: none;
         border: none;
@@ -116,6 +118,7 @@
         padding: 5px;
     }
 
+    /* svelte-ignore css-unused-selector */
     .config-button:hover {
         background-color: rgba(0, 0, 0, 0.1);
         border-radius: 50%;

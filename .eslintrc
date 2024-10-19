@@ -22,7 +22,8 @@
         "@typescript-eslint/no-unused-vars": [
             "error",
             {
-                "args": "none"
+                "args": "none",
+                "varsIgnorePattern": "^(App|Plugin|PluginSettingTab|Setting|WorkspaceLeaf|TFile|Vault)$"
             }
         ],
         "@typescript-eslint/ban-ts-comment": "off",
@@ -31,10 +32,15 @@
     },
     "overrides": [
         {
-            "files": [
-                "*.svelte"
-            ],
+            "files": ["*.svelte"],
             "parser": "svelte-eslint-parser"
+        },
+        {
+            "files": ["**/*.ts"],
+            "rules": {
+                "no-unused-vars": "off",
+                "@typescript-eslint/no-unused-vars": "off"
+            }
         }
     ]
 }

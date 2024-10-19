@@ -37,12 +37,12 @@ export class IPFSSync {
     const filePath = `${directoryName}/${file.path}`;
 
     try {
-      await axios.post(`${this.settings.ipfsServerUrl}/api/v0/add`, {
-        path: filePath,
-        content: content,
-      }, {
+      const formData = new FormData();
+      formData.append('file', new Blob([content]), filePath);
+
+      await axios.post(`${this.settings.ipfsServerUrl}/api/v0/add`, formData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
     } catch (error) {

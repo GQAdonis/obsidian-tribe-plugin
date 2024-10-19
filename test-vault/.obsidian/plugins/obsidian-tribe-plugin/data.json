@@ -1,6 +1,6 @@
 {
   "ipfsServerUrl": "https://ipfs.tribemedia.io",
-  "ipfsDirectoryName": "tribe",
+  "ipfsDirectoryName": "obsidian",
   "openAIBaseURL": "https://llm.tribemedia.io",
   "openAIKey": "ollama",
   "openAIModelName": "llama3.2"

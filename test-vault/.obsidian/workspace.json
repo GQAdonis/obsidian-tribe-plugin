@@ -34,8 +34,19 @@
               "icon": "lucide-file",
               "title": "Another note"
             }
+          },
+          {
+            "id": "2923e40de243ef87",
+            "type": "leaf",
+            "state": {
+              "type": "generative-ai-side-panel",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "Generative AI Side Panel"
+            }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -113,7 +124,7 @@
                 "sortOrder": "alphabetical",
                 "showSearch": false,
                 "searchQuery": "",
-                "backlinkCollapsed": false,
+                "backlinkCollapsed": true,
                 "unlinkedCollapsed": false
               },
               "icon": "links-coming-in",
@@ -124,7 +135,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 423.5
+    "width": 371.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -136,7 +148,7 @@
       "markdown-importer:Open format converter": false
     }
   },
-  "active": "7890123abcdef456",
+  "active": "2923e40de243ef87",
   "lastOpenFiles": [
     "Another note.md",
     "Sample Note.md"
