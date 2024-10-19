@@ -1,0 +1,9 @@
+{
+  "promptDelete": false,
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "attachments",
+  "newFileLocation": "root",
+  "userIgnoreFilters": [
+    "node_modules/"
+  ]
+}

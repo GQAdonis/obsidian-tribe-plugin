@@ -1,0 +1,11 @@
+{
+    "id": "obsidian-tribe-plugin",
+    "name": "Tribe Plugin",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "A plugin for Obsidian",
+    "author": "Travis James",
+    "authorUrl": "https://github.com/gqadonis",
+    "isDesktopOnly": false,
+    "main": "main.js"
+}
