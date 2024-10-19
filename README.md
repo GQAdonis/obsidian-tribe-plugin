@@ -10,6 +10,7 @@ Obsidian Tribe IPFS Sync is a powerful Obsidian plugin that enables users to sea
 - [Usage](#usage)
 - [Scripts](#scripts)
 - [Project Structure](#project-structure)
+- [Recent Updates](#recent-updates)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -137,6 +138,14 @@ Once installed, you can use the following features within Obsidian:
   npm run copy-plugin-files
   ```
 
+## Debugging
+
+When debugging, you can use the following command to open the Obsidian app in dev mode:
+
+```
+app.plugins.plugins['obsidian-tribe-plugin'].constructor
+```]
+
 ## Project Structure
 
 ```
@@ -174,6 +183,34 @@ obsidian-tribe-plugin/
 ├── uno.config.ts         # UnoCSS configuration
 └── vite.config.js        # Vite configuration
 ```
+
+## Recent Updates
+
+We've made several improvements to enhance the user experience and functionality of the Obsidian Tribe IPFS Sync plugin:
+
+1. **Enhanced Chat Bubble Component:**
+   - Redesigned chat bubbles with different background colors for user and assistant messages.
+   - Added rounded corners to chat bubbles for a more modern look.
+   - Implemented avatars for user and assistant messages, positioned to the left or right based on the message sender.
+
+2. **Improved Code Block Handling:**
+   - Added smaller, more compact buttons for copying code and creating new documents from code blocks.
+   - Implemented tooltips for these buttons to improve usability.
+   - Updated the styling of code blocks to ensure better readability in both light and dark modes.
+
+3. **Special Handling for Mermaid Diagrams:**
+   - Added a feature to detect Mermaid diagrams within messages.
+   - Implemented a "Save as PNG" option for Mermaid diagrams, allowing users to easily export diagrams as images.
+   - The save functionality now opens a system file dialog, enabling users to choose the save location and filename.
+
+4. **Accessibility and User Experience Improvements:**
+   - Enhanced contrast and readability of chat messages and code blocks.
+   - Improved the overall layout and spacing of chat components for better visual hierarchy.
+
+5. **Performance Optimizations:**
+   - Refactored code to improve rendering performance of chat messages, especially for long conversations.
+
+These updates aim to provide a more intuitive, efficient, and visually appealing experience when using the AI chat feature within the Obsidian Tribe IPFS Sync plugin.
 
 ## Contributing
 

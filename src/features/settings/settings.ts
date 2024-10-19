@@ -25,3 +25,20 @@ export function getPluginSettings(): TribePluginSettings {
     })();
     return settings;
 }
+
+export function saveSettings(settings: TribePluginSettings) {
+    settingsStore.set(settings);
+}
+
+export function checkMissingSettings(): string[] {
+    const settings = getPluginSettings();
+    const missingSettings: string[] = [];
+
+    Object.entries(settings).forEach(([key, value]) => {
+        if (!value) {
+            missingSettings.push(key);
+        }
+    });
+
+    return missingSettings;
+}

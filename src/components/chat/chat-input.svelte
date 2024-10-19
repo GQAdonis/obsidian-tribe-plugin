@@ -9,10 +9,22 @@
         userMessage = '';
       }
     }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        handleSend();
+      }
+    }
 </script>
   
 <div class="input-container">
-    <input type="text" bind:value={userMessage} placeholder="Type your message..." />
+    <input 
+      type="text" 
+      bind:value={userMessage} 
+      placeholder="Type your message..." 
+      on:keydown={handleKeydown}
+    />
     <button on:click={handleSend}>Send</button>
 </div>
   

@@ -1,15 +1,18 @@
 import { Plugin, App, PluginSettingTab, Setting } from 'obsidian';
 import type { TribePluginSettings } from './features/settings/settings';
-import { DEFAULT_SETTINGS } from './features/settings/settings';
+import { DEFAULT_SETTINGS, saveSettings, checkMissingSettings } from './features/settings/settings';
 import { IPFSSync } from './features/ipfs/ipfs-sync';
 import { VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL } from './constants';
 import { GenerativeAISidePanelView } from './features/chat/views/generative-ai-side-panel';
+import { toast } from './components/ui/toast/toast';
+import { isValidUrl } from './utils/validation';
 
 export default class TribePlugin extends Plugin {
   settings!: TribePluginSettings;
   private ipfsSync!: IPFSSync;
 
   async onload() {
+    console.log('Tribe Plugin loaded');
     await this.loadSettings();
     this.ipfsSync = new IPFSSync(this.app.vault, this.settings);
     await this.ipfsSync.initialize();
@@ -18,18 +21,21 @@ export default class TribePlugin extends Plugin {
       VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL,
       (leaf) => new GenerativeAISidePanelView(leaf)
     );
+    console.log('Tribe Plugin registerView');
 
     this.addRibbonIcon('ai', 'Tribe AI Plugin', (evt: MouseEvent) => {
       this.activateView();
     });
-
+    console.log('Tribe Plugin addRibbonIcon');
     this.addCommand({
       id: 'open-tribe-ai-plugin',
       name: 'Open Tribe AI Plugin',
       callback: () => this.activateView(),
     });
-
+    console.log('Tribe Plugin addCommand');
+    
     this.addSettingTab(new TribePluginSettingTab(this.app, this));
+    console.log('Tribe Plugin onload finished');
   }
 
   async onunload() {
@@ -37,14 +43,34 @@ export default class TribePlugin extends Plugin {
   }
 
   async loadSettings() {
+    console.log('Tribe Plugin loadSettings');
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
   async saveSettings() {
+    console.log('Tribe Plugin saveSettings');
     await this.saveData(this.settings);
+    saveSettings(this.settings);
+    toast({
+      title: "Settings Saved",
+      description: "Your settings have been successfully saved.",
+      duration: 3000,
+    });
   }
 
   activateView() {
+    console.log('Tribe Plugin activateView');
+    const missingSettings = checkMissingSettings();
+    if (missingSettings.length > 0) {
+      toast({
+        title: "Missing Settings",
+        description: `Please fill in all settings before activating the chat: ${missingSettings.join(', ')}`,
+        duration: 5000,
+        variant: "destructive",
+      });
+      return;
+    }
+
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_GENERATIVE_AI_SIDE_PANEL);
 
     const leaf = this.app.workspace.getRightLeaf(false);
@@ -61,29 +87,24 @@ export default class TribePlugin extends Plugin {
 
 class TribePluginSettingTab extends PluginSettingTab {
   plugin: TribePlugin;
+  errorMessages: { [key: string]: string } = {};
 
   constructor(app: App, plugin: TribePlugin) {
+    console.log('TribePluginSettingTab constructor');
     super(app, plugin);
     this.plugin = plugin;
   }
 
   display(): void {
+    console.log('TribePluginSettingTab display');
     const { containerEl } = this;
 
     containerEl.empty();
 
     containerEl.createEl('h2', { text: 'Settings for Tribe AI Plugin' });
 
-    new Setting(containerEl)
-      .setName('IPFS Server URL')
-      .setDesc('Enter the IPFS server URL')
-      .addText(text => text
-        .setPlaceholder('Enter your IPFS server URL')
-        .setValue(this.plugin.settings.ipfsServerUrl)
-        .onChange(async (value) => {
-          this.plugin.settings.ipfsServerUrl = value;
-          await this.plugin.saveSettings();
-        }));
+    this.addSettingWithValidation(containerEl, 'IPFS Server URL', 'Enter the IPFS server URL', 'ipfsServerUrl');
+    this.addSettingWithValidation(containerEl, 'OpenAI Base URL', 'Enter the OpenAI base URL', 'openAIBaseURL');
 
     new Setting(containerEl)
       .setName('IPFS Directory Name')
@@ -93,18 +114,6 @@ class TribePluginSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.ipfsDirectoryName)
         .onChange(async (value) => {
           this.plugin.settings.ipfsDirectoryName = value;
-          await this.plugin.saveSettings();
-        }));
-
-    new Setting(containerEl)
-      .setName('OpenAI Base URL')
-      .setDesc('Enter the OpenAI base URL')
-      .addText(text => text
-        .setPlaceholder('Enter the OpenAI base URL')
-        .setValue(this.plugin.settings.openAIBaseURL)
-        .onChange(async (value) => {
-          this.plugin.settings.openAIBaseURL = value;
-          await this.plugin.saveSettings();
         }));
 
     new Setting(containerEl)
@@ -115,7 +124,6 @@ class TribePluginSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.openAIKey)
         .onChange(async (value) => {
           this.plugin.settings.openAIKey = value;
-          await this.plugin.saveSettings();
         }));
 
     new Setting(containerEl)
@@ -126,7 +134,55 @@ class TribePluginSettingTab extends PluginSettingTab {
         .setValue(this.plugin.settings.openAIModelName)
         .onChange(async (value) => {
           this.plugin.settings.openAIModelName = value;
-          await this.plugin.saveSettings();
         }));
+
+    new Setting(containerEl)
+      .setName('Save Settings')
+      .setDesc('Save all settings')
+      .addButton(button => button
+        .setButtonText('Save')
+        .setCta()
+        .onClick(async () => {
+          if (Object.values(this.errorMessages).every(msg => msg === '')) {
+            await this.plugin.saveSettings();
+          } else {
+            toast({
+              title: "Invalid Settings",
+              description: "Please correct the invalid URLs before saving.",
+              duration: 5000,
+              variant: "destructive",
+            });
+          }
+        }));
+  }
+
+  addSettingWithValidation(containerEl: HTMLElement, name: string, desc: string, settingKey: keyof TribePluginSettings) {
+    const setting = new Setting(containerEl)
+      .setName(name)
+      .setDesc(desc)
+      .addText(text => text
+        .setPlaceholder(`Enter ${name.toLowerCase()}`)
+        .setValue(this.plugin.settings[settingKey] as string)
+        .onChange(async (value) => {
+          this.plugin.settings[settingKey] = value;
+          this.validateUrl(settingKey, value, setting.settingEl);
+        }));
+
+    const errorMessageEl = setting.settingEl.createDiv('setting-error-message');
+    errorMessageEl.style.color = 'red';
+    errorMessageEl.style.marginTop = '5px';
+  }
+
+  validateUrl(key: string, value: string, settingEl: HTMLElement) {
+    const errorMessageEl = settingEl.querySelector('.setting-error-message');
+    if (errorMessageEl) {
+      if (value && !isValidUrl(value)) {
+        this.errorMessages[key] = 'Invalid URL format';
+        errorMessageEl.textContent = this.errorMessages[key];
+      } else {
+        this.errorMessages[key] = '';
+        errorMessageEl.textContent = '';
+      }
+    }
   }
 }
